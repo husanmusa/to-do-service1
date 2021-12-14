@@ -1,1 +1,2 @@
-# to-do-service1
+# to-do-service
+Todo Service with Golang, Postgres, Grpc
