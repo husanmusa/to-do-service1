@@ -1,8 +1,9 @@
 package repo
 
 import (
-	pb "github.com/husanmusa/to-do-service/genproto"
 	"time"
+
+	pb "github.com/husanmusa/to-do-service/genproto"
 )
 
 // TaskStorageI ...

@@ -1,17 +1,17 @@
 package main
 
 import (
-	"github.com/husanmusa/to-do-service/storage"
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/husanmusa/to-do-service/config"
 	pb "github.com/husanmusa/to-do-service/genproto"
 	"github.com/husanmusa/to-do-service/pkg/db"
 	"github.com/husanmusa/to-do-service/pkg/logger"
 	"github.com/husanmusa/to-do-service/service"
-	"google.golang.org/grpc/reflection"
+	"github.com/husanmusa/to-do-service/storage"
 )
 
 func main() {
