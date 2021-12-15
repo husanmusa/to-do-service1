@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -170,7 +169,7 @@ func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, 
 		}
 		tasks = append(tasks, &task)
 	}
-	fmt.Println(tasks)
+
 	err = r.db.QueryRow(`SELECT count(*) FROM tasks WHERE deadline >= $1`, timer).Scan(&count)
 	if err != nil {
 		return nil, 0, err
