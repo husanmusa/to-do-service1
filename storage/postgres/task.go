@@ -75,10 +75,10 @@ func (r *taskRepo) List(page, limit int64) ([]*pb.Task, int64, error) {
 
 	var (
 		tasks []*pb.Task
-		task  pb.Task
 		count int64
 	)
 	for rows.Next() {
+		var task pb.Task
 		err = rows.Scan(
 			&task.Id,
 			&task.Assignee,
@@ -144,7 +144,6 @@ func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, 
 				SELECT id, assignee, title, summary, deadline, status 
 				FROM tasks WHERE deadline >= $1 LIMIT $2 OFFSET $3`, timer, limit, offset)
 	if err != nil {
-		fmt.Println("SMTHTHHT")
 		return nil, 0, err
 	}
 	if err = rows.Err(); err != nil {
@@ -154,10 +153,11 @@ func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, 
 
 	var (
 		tasks []*pb.Task
-		task  pb.Task
 		count int64
 	)
 	for rows.Next() {
+		var task pb.Task
+
 		err = rows.Scan(
 			&task.Id,
 			&task.Assignee,
@@ -170,7 +170,7 @@ func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, 
 		}
 		tasks = append(tasks, &task)
 	}
-
+	fmt.Println(tasks)
 	err = r.db.QueryRow(`SELECT count(*) FROM tasks WHERE deadline >= $1`, timer).Scan(&count)
 	if err != nil {
 		return nil, 0, err
