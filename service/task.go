@@ -34,7 +34,6 @@ func (s *TaskService) Create(ctx context.Context, req *pb.Task) (*pb.Task, error
 		return nil, status.Error(codes.Internal, "failed generate uuid")
 	}
 	req.Id = id.String()
-
 	task, err := s.storage.Task().Create(*req)
 	if err != nil {
 		s.logger.Error("failed to create task", l.Error(err))
@@ -78,7 +77,7 @@ func (s *TaskService) Update(ctx context.Context, req *pb.Task) (*pb.Task, error
 }
 
 func (s *TaskService) Delete(ctx context.Context, req *pb.ByIdReq) (*pb.EmptyResp, error) {
-	err := s.storage.Task().Delete(req.Id)
+	err := s.storage.Task().Delete(req.GetId())
 	if err != nil {
 		s.logger.Error("failed to delete task", l.Error(err))
 		return nil, status.Error(codes.Internal, "failed to delete task")
