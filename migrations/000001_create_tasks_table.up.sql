@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS tasks
 );
 -- export POSTGRESQL_URL='postgres://husanmusa:pass@localhost:5432/tododb?sslmode=disable'
 -- migrate -database ${POSTGRESQL_URL} -path migrations up/down
+-- migrate create -ext sql -dir migrations -seq create_tasks_table

@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -20,21 +19,22 @@ func NewTaskRepo(db *sqlx.DB) *taskRepo {
 }
 
 func (r *taskRepo) Create(task pb.Task) (pb.Task, error) {
-	var id int64
 	err := r.db.QueryRow(`
-		INSERT INTO tasks(assignee, title, summary, deadline, status)
-		VALUES($1, $2, $3, $4, $5) returning id`,
+		INSERT INTO tasks(id, assignee, title, summary, deadline, status, created_at, updated_at)
+		VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning id`,
+		task.Id,
 		task.Assignee,
 		task.Title,
 		task.Summary,
 		task.Deadline,
 		task.Status,
-	).Scan(&id)
+		time.Now().UTC(),
+		time.Now().UTC(),
+	).Scan(&task.Id)
 	if err != nil {
 		return pb.Task{}, err
 	}
-
-	task, err = r.Get(id)
+	task, err = r.Get(task.Id)
 	if err != nil {
 		return pb.Task{}, err
 	}
@@ -42,18 +42,19 @@ func (r *taskRepo) Create(task pb.Task) (pb.Task, error) {
 	return task, nil
 }
 
-func (r *taskRepo) Get(id int64) (pb.Task, error) {
+func (r *taskRepo) Get(id string) (pb.Task, error) {
 	var task pb.Task
 	err := r.db.QueryRow(`
-		SELECT id, assignee, title, summary, deadline, status, created_at FROM tasks
-		WHERE id=$1`, id).Scan(
+		SELECT id, assignee, title, summary, deadline, status, created_at, updated_at FROM tasks
+		WHERE id=$1 and deleted_at is NULL`, id).Scan(
 		&task.Id,
 		&task.Assignee,
 		&task.Title,
 		&task.Summary,
 		&task.Deadline,
 		&task.Status,
-		&task.CreatedAt)
+		&task.CreatedAt,
+		&task.UpdatedAt)
 	if err != nil {
 		return pb.Task{}, err
 	}
@@ -64,8 +65,8 @@ func (r *taskRepo) Get(id int64) (pb.Task, error) {
 func (r *taskRepo) List(page, limit int64) ([]*pb.Task, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(`
-				SELECT id, assignee, title, summary, deadline, status, created_at 
-				FROM tasks LIMIT $1 OFFSET $2`, limit, offset)
+				SELECT id, assignee, title, summary, deadline, status, created_at, updated_at 
+				FROM tasks WHERE deleted_at is NULL LIMIT $1 OFFSET $2`, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -87,7 +88,8 @@ func (r *taskRepo) List(page, limit int64) ([]*pb.Task, int64, error) {
 			&task.Summary,
 			&task.Deadline,
 			&task.Status,
-			&task.CreatedAt)
+			&task.CreatedAt,
+			&task.UpdatedAt)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -103,13 +105,14 @@ func (r *taskRepo) List(page, limit int64) ([]*pb.Task, int64, error) {
 }
 
 func (r *taskRepo) Update(task pb.Task) (pb.Task, error) {
-	result, err := r.db.Exec(`UPDATE tasks SET assignee=$1, title=$2, summary=$3, deadline=$4, status=$5, updated_at=current_timestamp
-						WHERE id=$6`,
+	result, err := r.db.Exec(`UPDATE tasks SET assignee=$1, title=$2, summary=$3, deadline=$4, status=$5, updated_at=$6
+						WHERE id=$7`,
 		&task.Assignee,
 		&task.Title,
 		&task.Summary,
 		&task.Deadline,
 		&task.Status,
+		time.Now().UTC(),
 		&task.Id)
 	if err != nil {
 		return pb.Task{}, err
@@ -127,10 +130,9 @@ func (r *taskRepo) Update(task pb.Task) (pb.Task, error) {
 	return task, err
 }
 
-func (r *taskRepo) Delete(id int64) error {
-	result, err := r.db.Exec(`DELETE FROM tasks WHERE id=$1`, id)
+func (r *taskRepo) Delete(id string) error {
+	result, err := r.db.Exec(`UPDATE tasks SET deleted_at=$1 WHERE id=$2`, time.Now().UTC(), id)
 	if err != nil {
-		fmt.Println("ERRRORRORORORR")
 		return err
 	}
 
@@ -144,8 +146,8 @@ func (r *taskRepo) Delete(id int64) error {
 func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, int64, error) {
 	offset := (page - 1) * limit
 	rows, err := r.db.Queryx(`
-				SELECT id, assignee, title, summary, deadline, status 
-				FROM tasks WHERE deadline >= $1 LIMIT $2 OFFSET $3`, timer, limit, offset)
+				SELECT id, assignee, title, summary, deadline, status, created_at, updated_at 
+				FROM tasks WHERE deadline >= $1 and deleted_at is NULL LIMIT $2 OFFSET $3`, timer, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -167,7 +169,9 @@ func (r *taskRepo) ListOverdue(page, limit int64, timer time.Time) ([]*pb.Task, 
 			&task.Title,
 			&task.Summary,
 			&task.Deadline,
-			&task.Status)
+			&task.Status,
+			&task.CreatedAt,
+			&task.UpdatedAt)
 		if err != nil {
 			return nil, 0, err
 		}

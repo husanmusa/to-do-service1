@@ -12,3 +12,6 @@ proto:
 
 lint: ## Run golangci-lint with printing to stdout
 	golangci-lint -c .golangci.yaml run --build-tags "musl" ./...
+
+m-c:
+	migrate create -ext sql -dir migrations -seq create_tasks_table

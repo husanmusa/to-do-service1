@@ -15,19 +15,22 @@ func TestTaskRepo_Create(t *testing.T) {
 	}{
 		"successful": {
 			input: pb.Task{
+				Id:       "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a5",
 				Assignee: "Assignee",
 				Title:    "Title",
 				Summary:  "Summary",
-				Deadline: "2021-11-16",
+				Deadline: "2021-12-20",
 				Status:   "active",
 			},
 			want: pb.Task{
+				Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a5",
 				Assignee:  "Assignee",
 				Title:     "Title",
 				Summary:   "Summary",
-				Deadline:  "2021-11-16T00:00:00Z",
+				Deadline:  "2021-12-20T00:00:00Z",
 				Status:    "active",
-				CreatedAt: "2021-12-16",
+				CreatedAt: "2021-12-20",
+				UpdatedAt: "2021-12-20",
 			},
 		},
 	}
@@ -38,8 +41,8 @@ func TestTaskRepo_Create(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
 			}
-			got.Id = 0
-			got.CreatedAt = "2021-12-16"
+			got.CreatedAt = "2021-12-20"
+			got.UpdatedAt = "2021-12-20"
 			if !reflect.DeepEqual(tc.want, got) {
 				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
 			}
@@ -49,19 +52,20 @@ func TestTaskRepo_Create(t *testing.T) {
 
 func TestTaskRepo_Get(t *testing.T) {
 	tests := map[string]struct {
-		input int64
+		input string
 		want  pb.Task
 	}{
 		"successful": {
-			input: 21,
+			input: "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a3",
 			want: pb.Task{
-				Id:        21,
+				Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a3",
 				Assignee:  "Assignee",
 				Title:     "Title",
 				Summary:   "Summary",
 				Deadline:  "2021-11-16T00:00:00Z",
 				Status:    "active",
-				CreatedAt: "2021-12-16T15:54:10.829915Z",
+				CreatedAt: "2021-12-20T03:23:58.245385Z",
+				UpdatedAt: "2021-12-20T03:23:58.245385Z",
 			},
 		},
 	}
@@ -70,10 +74,10 @@ func TestTaskRepo_Get(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			got, err := pgRepo.Get(tc.input)
 			if err != nil {
-				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
+				t.Fatalf("%s: expected: %v, \ngot: %v", name, tc.want, got)
 			}
 			if !reflect.DeepEqual(tc.want, got) {
-				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
+				t.Fatalf("%s: expected: %v, \n								got: %v", name, tc.want, got)
 			}
 		})
 	}
@@ -90,22 +94,24 @@ func TestTaskRepo_List(t *testing.T) {
 			inputL: 2,
 			want: []pb.Task{
 				{
-					Id:        20,
-					Assignee:  "Assignee2",
-					Title:     "Title2",
-					Summary:   "Summary2",
-					Deadline:  "2021-11-15T00:00:00Z",
-					Status:    "active",
-					CreatedAt: "2021-12-16",
-				},
-				{
-					Id:        21,
+					Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a3",
 					Assignee:  "Assignee",
 					Title:     "Title",
 					Summary:   "Summary",
 					Deadline:  "2021-11-16T00:00:00Z",
 					Status:    "active",
-					CreatedAt: "2021-12-16",
+					CreatedAt: "2021-12-20T03:23:58.245385Z",
+					UpdatedAt: "2021-12-20T03:23:58.245385Z",
+				},
+				{
+					Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a5",
+					Assignee:  "Assignee",
+					Title:     "Title",
+					Summary:   "Summary",
+					Deadline:  "2021-12-20T00:00:00Z",
+					Status:    "active",
+					CreatedAt: "2021-12-20T03:55:43.124544Z",
+					UpdatedAt: "2021-12-20T03:55:43.124544Z",
 				},
 			},
 		},
@@ -118,9 +124,8 @@ func TestTaskRepo_List(t *testing.T) {
 				if err != nil {
 					t.Fatalf("%s: expected: %v, got: %v", name, tc.want[i], *got[i])
 				}
-				got[i].CreatedAt = "2021-12-16"
 				if !reflect.DeepEqual(tc.want[i], *got[i]) {
-					t.Fatalf("%s: expected: %v, got: %v", name, tc.want[i], *got[i])
+					t.Fatalf("%s: expected: %v, \ngot: %v", name, tc.want[i], *got[i])
 				}
 			}
 		})
@@ -134,22 +139,22 @@ func TestTaskRepo_Update(t *testing.T) {
 	}{
 		"successful": {
 			input: pb.Task{
-				Id:        22,
-				Assignee:  "Assignee3",
-				Title:     "Title3",
-				Summary:   "Summary3",
-				Deadline:  "2021-11-16",
-				Status:    "active",
-				CreatedAt: "2021-11-16",
+				Id:       "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a4",
+				Assignee: "Assignee",
+				Title:    "Title",
+				Summary:  "Summary something Update",
+				Deadline: "2021-11-21",
+				Status:   "active",
 			},
 			want: pb.Task{
-				Id:        22,
-				Assignee:  "Assignee3",
-				Title:     "Title3",
-				Summary:   "Summary3",
-				Deadline:  "2021-11-16T00:00:00Z",
+				Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a4",
+				Assignee:  "Assignee",
+				Title:     "Title",
+				Summary:   "Summary something Update",
+				Deadline:  "2021-11-21T00:00:00Z",
 				Status:    "active",
-				CreatedAt: "2021-11-16",
+				CreatedAt: "2021-12-20",
+				UpdatedAt: "2021-12-20",
 			},
 		},
 	}
@@ -160,10 +165,10 @@ func TestTaskRepo_Update(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
 			}
-			got.CreatedAt = "2021-11-16"
-
+			got.CreatedAt = "2021-12-20"
+			got.UpdatedAt = "2021-12-20"
 			if !reflect.DeepEqual(tc.want, got) {
-				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, got)
+				t.Fatalf("%s: expected: %v, \n\t\t\t\t\t\t\t\tgot: %v", name, tc.want, got)
 			}
 		})
 	}
@@ -171,11 +176,11 @@ func TestTaskRepo_Update(t *testing.T) {
 
 func TestTaskRepo_Delete(t *testing.T) {
 	tests := map[string]struct {
-		input int64
+		input string
 		want  pb.Task
 	}{
 		"successful": {
-			input: 23,
+			input: "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a4",
 			want:  pb.Task{},
 		},
 	}
@@ -186,15 +191,12 @@ func TestTaskRepo_Delete(t *testing.T) {
 			if err != nil {
 				t.Fatalf("%s: expected: %v, got: %v", name, tc.want, nil)
 			}
-			//if !reflect.DeepEqual(nil, nil) {
-			//	t.Fatalf("%s: expected: %v, got: %v", name, tc.want, nil)
-			//}
 		})
 	}
 }
 
 func TestTaskRepo_ListOverdue(t *testing.T) {
-	timer, _ := time.Parse("2006-01-02", "2021-12-17")
+	timer, _ := time.Parse("2006-01-02", "2021-11-16")
 	tests := map[string]struct {
 		inputP int64
 		inputL int64
@@ -207,22 +209,24 @@ func TestTaskRepo_ListOverdue(t *testing.T) {
 			timer:  timer,
 			want: []pb.Task{
 				{
-					Id:        20,
-					Assignee:  "Assignee2",
-					Title:     "Title2",
-					Summary:   "Summary2",
-					Deadline:  "2021-11-15T00:00:00Z",
-					Status:    "active",
-					CreatedAt: "2021-12-16",
-				},
-				{
-					Id:        21,
+					Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a3",
 					Assignee:  "Assignee",
 					Title:     "Title",
 					Summary:   "Summary",
 					Deadline:  "2021-11-16T00:00:00Z",
 					Status:    "active",
-					CreatedAt: "2021-12-16",
+					CreatedAt: "2021-12-20T03:23:58.245385Z",
+					UpdatedAt: "2021-12-20T03:23:58.245385Z",
+				},
+				{
+					Id:        "d41db3c4-84fe-4f39-9e6f-0c8a9bc5b3a5",
+					Assignee:  "Assignee",
+					Title:     "Title",
+					Summary:   "Summary",
+					Deadline:  "2021-12-20T00:00:00Z",
+					Status:    "active",
+					CreatedAt: "2021-12-20T03:55:43.124544Z",
+					UpdatedAt: "2021-12-20T03:55:43.124544Z",
 				},
 			},
 		},
@@ -235,9 +239,8 @@ func TestTaskRepo_ListOverdue(t *testing.T) {
 				if err != nil {
 					t.Fatalf("%s: expected: %v, got: %v", name, tc.want[i], *got[i])
 				}
-				got[i].CreatedAt = "2021-12-16"
 				if !reflect.DeepEqual(tc.want[i], *got[i]) {
-					t.Fatalf("%s: expected: %v, got: %v", name, tc.want[i], *got[i])
+					t.Fatalf("%s: expected: %v, \n\t\t\t\t\t\t\t\tgot: %v", name, tc.want[i], *got[i])
 				}
 			}
 		})
